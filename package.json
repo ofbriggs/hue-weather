@@ -1,0 +1,11 @@
+{
+    "name": "hue-weather",
+    "version": "0.0.1",
+    "devDependencies": {
+        "node-hue-api": "~0.2.3"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ofbriggs/hue-weather.git"
+    }
+}
