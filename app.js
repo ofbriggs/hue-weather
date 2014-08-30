@@ -47,8 +47,13 @@ hue.locateBridges().then(function(bridge){
     lights.lights.forEach(function(light){
        getForecast(function(weather){
             var temp = weather.currently.apparentTemperature;
+            weather.daily.data.map(function(dat){
+                console.log(JSON.stringify(dat));
+            });
             var state = lightState.create().on().rgb(255 * (temp/35),0,255 * (1-(temp/35)));
+            var state2 = lightState.create().transition(3600).off();
             api.setLightState(light.id, state);
+            api.setLightState(light.id, state2);
        });
     });
 });
