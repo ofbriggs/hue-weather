@@ -12,6 +12,17 @@ var forecast = new Forecast({
     }
 });
 
+var currentDate = new Date();
+var yesterDate = new Date();
+yesterDate.setDate(yesterDate.getDate() - 1);
+
+var weatherUTCHour = 16;
+var hourDiff = weatherUTCHour - currentDate.getUTCHours();
+var secondsDiff = hourDiff * 3600;
+
+var currentUnixTime = ~~(currentDate.getTime() / 1000) + secondsDiff;
+var yesterUnixTime = ~~(yesterDate.getTime() / 1000) + secondsDiff;
+
 function getForecast(fn){
     forecast.get([40.766570099999996, -73.98546859999999], function(err, weather) {
         if(err) return console.dir(err);
