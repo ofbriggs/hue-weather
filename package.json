@@ -1,9 +1,9 @@
 {
   "name": "hue-weather",
   "version": "0.0.1",
-  "devDependencies": {
+  "dependencies": {
     "node-hue-api": "~0.2.3",
-    "forecast": "~0.1.2"
+    "forecast": "ofbriggs/forecast"
   },
   "repository": {
     "type": "git",
