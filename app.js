@@ -20,15 +20,42 @@ var weatherUTCHour = 16;
 var hourDiff = weatherUTCHour - currentDate.getUTCHours();
 var secondsDiff = hourDiff * 3600;
 
-var currentUnixTime = ~~(currentDate.getTime() / 1000) + secondsDiff;
-var yesterUnixTime = ~~(yesterDate.getTime() / 1000) + secondsDiff;
+var currentUnixTime = ~~(currentDate.getTime() / 1000);
+var yesterUnixTime = ~~(yesterDate.getTime() / 1000);
 
-function getForecast(fn){
-    forecast.get([40.766570099999996, -73.98546859999999], function(err, weather) {
+function getForecast(fn, time){
+    forecast.get([40.766570099999996, -73.98546859999999, time], function(err, weather) {
         if(err) return console.dir(err);
         return fn(weather);
     });
 }
+
+function extractTemp(weatherObj){
+    var today = weatherObj.daily.data[0];
+    var min = today.apparentTemperatureMin;
+    var max = today.apparentTemperatureMax;
+
+    return (max + min) / 2;
+}
+
+function forecastDiff(time1, time2, fn){
+    var temp1, temp2;
+    //fix this!!!!!!!!!!!!
+    getForecast(function(weather){
+        temp1 = extractTemp(weather);
+        if (temp2 !== undefined){
+            fn(temp2 - temp1);
+        }
+    }, time1);
+
+    getForecast(function(weather){
+        temp2 = extractTemp(weather);
+        if (temp1 !== undefined){
+            fn(temp2 - temp1);
+        }
+    }, time2);
+}
+
 var hostname = "",
     username = "raspberrypi",
     api;
@@ -56,13 +83,18 @@ hue.locateBridges().then(function(bridge){
     return api.lights();
 }).then(function(lights){
     lights.lights.forEach(function(light){
-       getForecast(function(weather){
-            var temp = weather.currently.apparentTemperature;
-            weather.daily.data.map(function(dat){
-                console.log(JSON.stringify(dat));
-            });
-            var state = lightState.create().on().rgb(255 * (temp/35),0,255 * (1-(temp/35)));
-            var state2 = lightState.create().transition(3600).off();
+        forecastDiff(yesterUnixTime, currentUnixTime, function(tempDiff){
+            var state, state2 = lightState.create().transition(3600).off();
+            var absoluteChange = Math.abs(tempDiff);
+            if (absoluteChange < 3){
+                state = lightState.create().on().rgb(0, 255, 0);
+            }
+            else if (tempDiff > 0){
+                state = lightState.create().on().rgb(255, 0, 0);
+            }
+            else if (tempDiff > 0){
+                state = lightState.create().on().rgb(0, 0, 255);
+            }
             api.setLightState(light.id, state);
             api.setLightState(light.id, state2);
        });
