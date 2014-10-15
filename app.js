@@ -23,12 +23,20 @@ var secondsDiff = hourDiff * 3600;
 var currentUnixTime = ~~(currentDate.getTime() / 1000);
 var yesterUnixTime = ~~(yesterDate.getTime() / 1000);
 
-function getForecast(fn, time){
+function curry(fn){
+    var args = [].slice.call(arguments, 1);
+    return function(callback){
+        fn.apply(fn, args.concat(callback));
+    }
+}
+
+function getForecast(time, fn){
     forecast.get([40.766570099999996, -73.98546859999999, time], function(err, weather) {
         if(err) return console.dir(err);
         return fn(weather);
     });
 }
+
 
 function extractTemp(weatherObj){
     var today = weatherObj.daily.data[0];
@@ -38,22 +46,46 @@ function extractTemp(weatherObj){
     return (max + min) / 2;
 }
 
+//takes an array of callbacks, gives fn the resolved values in the same order
+function all(callbackArr, fn){
+    var arr = [];
+    var callbackCount = callbackArr.length;
+    callbackArr.forEach(function(callback, idx){
+        callback.call(callback, function(value){
+            arr[idx] = value;
+            if (--callbackCount <= 0){
+                fn(arr);
+            }
+        });
+    });
+}
+
+function newForecastDiff(time1, time2, fn){
+    var lastForecast = curry(getForecast, time1);
+    var nowForecast = curry(getForecast, time2);
+    all([lastForecast, nowForecast], function(weatherArr){
+        fn(extractTemp(weatherArr[1]) - extractTemp(weatherArr[0]));
+    });
+}
+
 function forecastDiff(time1, time2, fn){
-    var temp1, temp2;
+    var temp1, temp2, curryForecast;
+    var lastForecast = curryForecast(fn, time1);
+    var nowForecast = curryForecast(fn, time2);
     //fix this!!!!!!!!!!!!
-    getForecast(function(weather){
+    getForecast(time1, function(weather){
         temp1 = extractTemp(weather);
         if (temp2 !== undefined){
             fn(temp2 - temp1);
         }
-    }, time1);
+    });
 
-    getForecast(function(weather){
+    getForecast(time2, function(weather){
         temp2 = extractTemp(weather);
         if (temp1 !== undefined){
             fn(temp2 - temp1);
         }
-    }, time2);
+    });
 }
 
 var hostname = "",
