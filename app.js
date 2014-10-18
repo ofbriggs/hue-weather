@@ -60,31 +60,11 @@ function all(callbackArr, fn){
     });
 }
 
-function newForecastDiff(time1, time2, fn){
+function forecastDiff(time1, time2, fn){
     var lastForecast = curry(getForecast, time1);
     var nowForecast = curry(getForecast, time2);
     all([lastForecast, nowForecast], function(weatherArr){
         fn(extractTemp(weatherArr[1]) - extractTemp(weatherArr[0]));
-    });
-}
-
-function forecastDiff(time1, time2, fn){
-    var temp1, temp2, curryForecast;
-    var lastForecast = curryForecast(fn, time1);
-    var nowForecast = curryForecast(fn, time2);
-    //fix this!!!!!!!!!!!!
-    getForecast(time1, function(weather){
-        temp1 = extractTemp(weather);
-        if (temp2 !== undefined){
-            fn(temp2 - temp1);
-        }
-    });
-
-    getForecast(time2, function(weather){
-        temp2 = extractTemp(weather);
-        if (temp1 !== undefined){
-            fn(temp2 - temp1);
-        }
     });
 }
 
